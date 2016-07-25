@@ -14,6 +14,7 @@
 #    password            => 'encryptedstring',
 #    password_max_age    => 90,
 #    last_change         => '2015-01-01',
+#    expiry              => '2017-01-01',
 #    ssh_authorized_keys => ['ssh-rsa AAAA...123 user@host'],
 #    manage_groups       => true,
 #  }
@@ -37,6 +38,7 @@ define local_user (
   $password_max_age    = 90,
   $shell               = '/bin/bash',
   $home                = "/home/${name}",
+  $expiry              = 'absent',
   $managehome          = true,
   $ssh_authorized_keys = [],
   $manage_groups       = false,
@@ -55,6 +57,9 @@ define local_user (
     validate_string($password)
     validate_bool($managehome)
     validate_re("${last_change}", '^(\d+|\d+-\d+-\d+)$') #lint:ignore:only_variable_string
+    if ($expiry != 'absent') {
+        validate_re("${expiry}", '^\d{4}-\d{2}-\d{2}$')
+    }
     validate_integer($password_max_age)
     validate_string($home)
     validate_string($gid)
@@ -95,6 +100,7 @@ define local_user (
       password_max_age => $password_max_age,
       uid              => $uid,
       gid              => $gid,
+      expiry           => $expiry,
     }
     if ($ssh_authorized_keys) {
       local_user::ssh_authorized_keys{$ssh_authorized_keys:
